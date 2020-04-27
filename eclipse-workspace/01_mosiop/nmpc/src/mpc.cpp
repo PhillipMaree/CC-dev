@@ -20,11 +20,12 @@ extern "C" void* createSolver( double tf, double N )
 	return (void*)solver;
 }
 
-extern "C" void destroySolver( void* solver )
+extern "C" void destroySolver( void* vptr )
 {
 	printf("Delete instance of solver\n");
 
-	delete solver;
+	if( vptr!=NULL )
+		delete (MpcC*)vptr;
 }
 
 extern "C" double solve(void * vptr, double x1, double x2, double x3 )

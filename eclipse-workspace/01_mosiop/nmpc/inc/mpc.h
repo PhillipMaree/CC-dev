@@ -10,20 +10,6 @@
 
 #include "../inc/nlp.h"
 
-/*
- * Output structure
- */
-struct MpcOSt {
-	double u;
-};
-
-/*
- * Structure to contain desirable inputs needed to solve MPC
- */
-struct MpcISt {
-	double x[3];
-};
-
 class MpcC {
 public:
 	MpcC( float tf, int N ):nlp(tf, N){};

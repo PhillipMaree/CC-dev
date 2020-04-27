@@ -29,14 +29,15 @@ protected:
 class CollocationC {
 public:
 
-	CollocationC(int degree, std::string method);
+	CollocationC(int degree, std::string method) : K(degree),
+		tau_root(casadi::DM({0,casadi::collocation_points(degree, method)})) ,
+		B(casadi::DM(1, K+1)), C(casadi::DM(K+1, K+1)), D(casadi::DM(1, K+1)) {};
 	~CollocationC( void ){};
 
 protected:
 
 	int K;
-	VectorC<float> B, D, tau_root;
-	MatrixC<float> C;
+	casadi::DM B, C, D, tau_root;
 
 };
 
