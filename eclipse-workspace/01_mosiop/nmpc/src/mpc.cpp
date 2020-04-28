@@ -13,7 +13,7 @@
  */
 extern "C" void* createSolver( double tf, double N )
 {
-	printf("Create solve for  N=%i, tf=%.f, dt=%.3f\n", (int)N, (float)tf, (float)tf/N);
+	printf("Create solve for  N=%i, tf=%.f, h=%.3f\n", (int)N, (float)tf, (float)tf/N);
 
 	MpcC* solver = new MpcC( (float)tf, (int)N);
 

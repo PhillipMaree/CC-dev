@@ -8,6 +8,7 @@
 #define INCLUDE_OCP_H_
 
 #include <casadi/casadi.hpp>
+#include "../inc/debug.h"
 
 /*
  * Class for handling complex Casadi variables types
@@ -17,8 +18,12 @@ class VmC : public casadi::MX {
 public:
 
 	VmC( void ){};
-	VmC( const std::string name, const casadi::DM& val ) : casadi::MX( casadi::MX::sym(name, val.size1(), val.size2()) ), vm_ub(val) {}
-	VmC( const std::string name, const casadi::DM& lb, const casadi::DM& ub ) : casadi::MX( casadi::MX::sym(name, lb.size1(), lb.size2()) ), vm_lb(lb), vm_ub(ub) {}
+	VmC( const std::string name, const casadi::DM& val ) : casadi::MX( casadi::MX::sym(name, val.size1(), val.size2()) ), vm_ub(val) {
+		DEBUG( boost::format{"Added %1% [%2%x%3%]"} % name % this->size1() % this->size2() );
+	}
+	VmC( const std::string name, const casadi::DM& lb, const casadi::DM& ub ) : casadi::MX( casadi::MX::sym(name, lb.size1(), lb.size2()) ), vm_lb(lb), vm_ub(ub) {
+		DEBUG( boost::format{"Added %1% [%2%x%3%]"} % name % this->size1() % this->size2() );
+	}
 	~VmC( void ){};
 
 	const std::string name() { return this->get_str(); }
@@ -70,15 +75,13 @@ public:
 	casadi::MX M(void);
 
 	casadi::MX f(void);
-	casadi::MX g(void);
-	casadi::MX h(void);
 
 };
 
 /*
  * Application target to by transcribed
  */
-typedef CstrC TargetOcpC;
+typedef CstrC AppOcpC;
 
 
 #endif /* INCLUDE_OCP_H_ */

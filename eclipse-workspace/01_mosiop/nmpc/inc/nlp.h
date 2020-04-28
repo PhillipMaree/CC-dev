@@ -5,42 +5,37 @@
  *      Author: johannes
  */
 
-#ifndef INC_NLP_H_
-#define INC_NLP_H_
-
-
+#ifndef INCLUDE_NLP_H_
+#define INCLUDE_NLP_H_
 
 #include "../inc/ocp.h"
 
-class NlpC {
-public:
-	NlpC( float, int );
-	~NlpC( void ){};
-
-protected:
-
-	TargetOcpC ocp;
-
-	float tf, dt;
-	int N;
-
-};
-
-class CollocationC {
+class ColC {
 public:
 
-	CollocationC(int degree, std::string method) : K(degree),
-		tau_root(casadi::DM({0,casadi::collocation_points(degree, method)})) ,
-		B(casadi::DM(1, K+1)), C(casadi::DM(K+1, K+1)), D(casadi::DM(1, K+1)) {};
-	~CollocationC( void ){};
+	ColC( int, std::string);
+	~ColC( void ){};
 
 protected:
 
 	int K;
 	casadi::DM B, C, D, tau_root;
 
+
 };
 
+class NlpC : public ColC {
+public:
 
+	NlpC( float tf, int N_ ) : ColC( 4, "legendre"), ocp( tf ), h(tf/N_), N(N_) {}
+	~NlpC( void ){};
 
-#endif /* INC_NLP_H_ */
+protected:
+
+	AppOcpC ocp;
+	float h;
+	int N;
+
+};
+
+#endif /* INCLUDE_NLP_H_ */

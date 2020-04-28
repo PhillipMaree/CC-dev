@@ -9,16 +9,17 @@
 #define INC_MPC_H_
 
 #include "../inc/nlp.h"
+#include <string>
 
 class MpcC {
 public:
-	MpcC( float tf, int N ):nlp(tf, N){};
-	~MpcC( void);
+
+	MpcC( float tf, int N ) : nlp( tf, N ){};
+	~MpcC( void){};
 
 protected:
 
 	NlpC nlp;
-
 
 };
 
