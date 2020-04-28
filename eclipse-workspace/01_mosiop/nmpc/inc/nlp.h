@@ -21,13 +21,12 @@ protected:
 	int K;
 	casadi::DM B, C, D, tau_root;
 
-
 };
 
 class NlpC : public ColC {
 public:
 
-	NlpC( float tf, int N_ ) : ColC( 4, "legendre"), ocp( tf ), h(tf/N_), N(N_) {}
+	NlpC( float tf, int N_ ) : ColC( 3, "legendre"), ocp( tf ), h(tf/N_), N(N_) {}
 	~NlpC( void ){};
 
 protected:
