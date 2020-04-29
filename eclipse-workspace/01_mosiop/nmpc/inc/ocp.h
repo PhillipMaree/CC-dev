@@ -18,22 +18,22 @@ class VmC : public casadi::MX {
 public:
 
 	VmC( void ){};
-	VmC( const std::string name, const casadi::DM& val ) : casadi::MX( casadi::MX::sym(name, val.size1(), val.size2()) ), vm_ub(val) {
+	VmC( const std::string name, const casadi::DM& val ) : casadi::MX( casadi::MX::sym(name, val.size1(), val.size2()) ), ub_dm(val) {
 		DEBUG( boost::format{"Added %1% [%2%x%3%]"} % name % this->size1() % this->size2() );
 	}
-	VmC( const std::string name, const casadi::DM& lb, const casadi::DM& ub ) : casadi::MX( casadi::MX::sym(name, lb.size1(), lb.size2()) ), vm_lb(lb), vm_ub(ub) {
+	VmC( const std::string name, const casadi::DM& lb, const casadi::DM& ub ) : casadi::MX( casadi::MX::sym(name, lb.size1(), lb.size2()) ), dm_lb(lb), ub_dm(ub) {
 		DEBUG( boost::format{"Added %1% [%2%x%3%]"} % name % this->size1() % this->size2() );
 	}
 	~VmC( void ){};
 
 	const std::string name() { return this->get_str(); }
-	const casadi::DM ub() { return vm_ub; };
-	const casadi::DM lb() { return vm_lb.size1()==0 ? vm_ub : vm_lb; };
+	const casadi::DM ub() { return ub_dm; };
+	const casadi::DM lb() { return dm_lb.size1()==0 ? ub_dm : dm_lb; };
 
 protected:
 
-	casadi::DM vm_ub;
-	casadi::DM vm_lb;
+	casadi::DM ub_dm;
+	casadi::DM dm_lb;
 
 };
 typedef VmC VM;
@@ -45,9 +45,10 @@ class OcpC {
 
 public:
 
-
-
-	OcpC( float );
+	OcpC( float tf, std::string description ){
+		printf("OCP instantiated for: %s\n", description.c_str());
+		t = VmC("t",casadi::DM(1), casadi::DM(tf));
+	}
 	virtual ~OcpC( void ) {};
 
 	virtual casadi::MX L(void){ return casadi::MX(); }  // legendre cost term
@@ -57,10 +58,8 @@ public:
 	virtual casadi::MX g(void){ return casadi::MX(); }  // algebraic equality constraints
 	virtual casadi::MX h(void){ return casadi::MX(); }  // algebraic inequality constraints
 
-protected:
+	VM t,y,u,p;                                         // time, states, control, parameter variables
 
-	std::string name;                                  // name description of problem
-	VM t,y,u,p;                                      // time, states, control, parameter variables
 };
 
 /*
@@ -73,7 +72,6 @@ public:
 
 	casadi::MX L(void);
 	casadi::MX M(void);
-
 	casadi::MX f(void);
 
 };

@@ -27,9 +27,9 @@
 
 	inline void DEBUG( const std::string& str  ){};
 	inline void DEBUG( const boost::format& fmt ){};
-	inline void DEBUG( const casadi::SX &sx ){};
-	inline void DEBUG( const casadi::DM &sx ){};
-	inline void DEBUG( const casadi::MX &sx ){};
+	inline void DEBUG( const casadi::SX &sx, const std::string& str="" ){};
+	inline void DEBUG( const casadi::DM &sx, const std::string& str="" ){};
+	inline void DEBUG( const casadi::MX &sx, const std::string& str="" ){};
 
 #endif
 

@@ -35,6 +35,11 @@ extern "C" double solve(void * vptr, double x1, double x2, double x3 )
     return 0;
 }
 
+void MpcC::report( void)
+{
+	nlp.report();
+}
+
 
 
 
