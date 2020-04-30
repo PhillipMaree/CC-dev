@@ -63,24 +63,16 @@ ColC::ColC( int K_, std::string scheme_) : K(K_), scheme(scheme_), B(DM(1, K+1))
 
 NlpC::NlpC( float tf, int N_ ) :
 		ColC( ),
-		ocp( tf ),
-		N(N_),
-		h(tf/N),
-		n(ocp.y.size().first),
+		ocp( tf ),                // tf = h*N
+		N(N_),                    // prediction horizon stages for MPC
+		h(tf/N),                  // time length for each MPC stage
+		n(ocp.y.size().first),    // number ofg
 		m(ocp.u.size().first),
 		stats(n,m,N,K),
 		offsets(K)
 {
-	/*
-	 * initialize an empty NLP structure
-	 */
-	create();
-
-	/*
-	 * transcribe the OCP to NLP problem
-	 */
+	structure();
 	transcribe();
-
 }
 
 void NlpC::report( void )
@@ -94,67 +86,51 @@ void NlpC::report( void )
 	DEBUG(D, "D");
 }
 
-void NlpC::create( void )
+void NlpC::structure( void )
 {
+	for( int k=0; k<N; k++ ) {
 
-	for( int k=0; k<N; k++) {
-		append( k+tau(0)*h );
+		dm_nlp["t"].append( DM({( k+tau(0) )*h}) );
+
+		mx_nlp["x"].append( MX::sym( ocp.y.name()+"_"+std::to_string(k), ocp.y.sparsity() ) );
+		dm_nlp["lbx"].append( ocp.y.lbx() );
+		dm_nlp["ubx"].append( ocp.y.ubx() );
+		dm_nlp["x0"].append( ocp.y.x0() );
 
 		for( int j=1; j<K+1; j++ ) {
-			append( k+tau(j)*h );
-		}
-	}
 
-	append( N*h );
+			dm_nlp["t"].append( DM({( k+tau(j) )*h}) );
+
+			mx_nlp["x"].append( MX::sym( ocp.y.name()+"_"+std::to_string(k)+"_"+std::to_string(j), ocp.y.sparsity() )  );
+			dm_nlp["lbx"].append( ocp.y.lbx() );
+			dm_nlp["ubx"].append( ocp.y.ubx() );
+			dm_nlp["x0"].append( ocp.y.x0() );
+		}
+
+		mx_nlp["x"].append( MX::sym( ocp.u.name()+"_"+std::to_string(k), ocp.u.sparsity() ) );
+		dm_nlp["lbx"].append( ocp.u.lbx() );
+		dm_nlp["ubx"].append( ocp.u.ubx() );
+		dm_nlp["x0"].append( ocp.u.x0() );
+	}
+	dm_nlp["t"].append( DM({N*h}) );
+
+	mx_nlp["x"].append( MX::sym( ocp.y.name()+"_"+std::to_string(N), ocp.y.sparsity() )  );
+	dm_nlp["lbx"].append( ocp.y.lbx() );
+	dm_nlp["ubx"].append( ocp.y.ubx() );
+	dm_nlp["x0"].append( ocp.y.x0() );
+
+
+	DEBUG( dm_nlp["t"].eval(), "t");
+	DEBUG( dm_nlp["ubx"].eval(), "ubx");
+	DEBUG( mx_nlp["x"].eval(), "x");
+	//DEBUG( mx_nlp["x"].eval().T(), "x");
+	//DEBUG( dm_nlp["x0"].eval().T(), "x0");
+
+
 }
 
 void NlpC::transcribe( void )
 {
-	/*
-	 * MPC receding horizon for first N-1 stages
-	 */
-	for(int k=0; k<N-1; k++) {
-
-		/*
-		 * continuity boundary constraints
-		 */
-
-
-		/*
-		 * residual constraints for collocation equations
-		 */
-
-
-		/*
-		 * stage cost
-		 */
-
-	}
-
-	/*
-	 * MPC terminal stage N
-	 */
-}
-
-void NlpC::append(const double& t)
-{
 
 }
-
-
-void NlpC::append(const casadi::MX& J)
-{
-
-}
-
-void NlpC::append(const casadi::MX& g, const casadi::DM& lbg, const casadi::DM& ubg)
-{
-
-}
-
-void NlpC::append(const casadi::MX& z, const casadi::DM& lbz, const casadi::DM& ubz, const casadi::DM& z0)
-{
-
-}
-
 

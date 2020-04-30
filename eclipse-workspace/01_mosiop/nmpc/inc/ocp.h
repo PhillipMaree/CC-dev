@@ -18,22 +18,24 @@ class VmC : public casadi::MX {
 public:
 
 	VmC( void ){};
-	VmC( const std::string name, const casadi::DM& val ) : casadi::MX( casadi::MX::sym(name, val.size1(), val.size2()) ), ub_dm(val) {
+	VmC( const std::string name, const casadi::DM& val ) : casadi::MX( casadi::MX::sym(name, val.size1(), val.size2()) ), lbx_dm(val) {
 		DEBUG( boost::format{"Added %1% [%2%x%3%]"} % name % this->size1() % this->size2() );
 	}
-	VmC( const std::string name, const casadi::DM& lb, const casadi::DM& ub ) : casadi::MX( casadi::MX::sym(name, lb.size1(), lb.size2()) ), dm_lb(lb), ub_dm(ub) {
+	VmC( const std::string name, const casadi::DM& lb, const casadi::DM& ub ) : casadi::MX( casadi::MX::sym(name, lb.size1(), lb.size2()) ), lbx_dm(lb), ubx_dm(ub) {
 		DEBUG( boost::format{"Added %1% [%2%x%3%]"} % name % this->size1() % this->size2() );
 	}
 	~VmC( void ){};
 
 	const std::string name() { return this->get_str(); }
-	const casadi::DM ub() { return ub_dm; };
-	const casadi::DM lb() { return dm_lb.size1()==0 ? ub_dm : dm_lb; };
+	const casadi::DM x0()  { return lbx_dm; }
+	const casadi::DM lbx() { return lbx_dm; }
+	const casadi::DM ubx() { return ubx_dm.size1()==0 ? lbx_dm : ubx_dm; }
 
 protected:
 
-	casadi::DM ub_dm;
-	casadi::DM dm_lb;
+	casadi::DM x0_dm;
+	casadi::DM ubx_dm;
+	casadi::DM lbx_dm;
 
 };
 typedef VmC VM;

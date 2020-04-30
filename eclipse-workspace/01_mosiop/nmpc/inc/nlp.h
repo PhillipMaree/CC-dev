@@ -32,39 +32,19 @@ public:
 	DictC( void ) {}
 	~DictC( void ) {}
 
-	void append(std::string key, T val) {
-		std::vector<T> v(val);
-
-		itr = T_dict.find( key );
-		if( itr == T_dict.end() )
-			T_dict[key].insert(T_dict[key].end(),v.begin() , v.end());
-		else
-			itr->second.insert(itr->second.end(),v.begin() , v.end());
-	}
-
-	T eval(std::string key) {
-
-		itr = T_dict.find( key );
-		if( itr != T_dict.end() )
-			return T(itr->second);
-		else
-			return T();
-
-	}
-
 	struct ProxySt {
 	public:
 		ProxySt(  std::vector<T>& v_ ) : v(v_) {}
 
 
 		void append( T val) {
-			std::vector<T> v_(val);
-			v.insert(v.end(),v_.begin() , v_.end());
+			for (int i=0; i< val.size1(); i++)
+				v.push_back(val(i));
 		}
 
-		T eval( void ) {
-			return T(v);
-		}
+		std::vector<T> eval( void ) { return v; }
+
+	protected:
 		std::vector<T>& v;
 	};
 
@@ -130,26 +110,19 @@ protected:
 		int yoff, coff, uoff, poff;
 	};
 
-	AppOcpC ocp;
-	float h;
-	int N;
-	int n,m;
+	AppOcpC ocp;       // application spesific OCP
+	float h;           // time duration of MPC stage
+	int N;             // prediction horizon number of stages
+	int n,m;           // state and control dimension size
 
-	DictC<casadi::MX> nlp;
-	DictC<casadi::DM> arg;
+	DictC<casadi::MX> mx_nlp;
+	DictC<casadi::DM> dm_nlp;
 
 	VarStatsSt stats;
 	IdxOffSt offsets;
 
-	void create( void );
+	void structure( void );
 	void transcribe( void );
-
-	void append(const double&);
-	void append(const casadi::MX&);
-	void append(const casadi::MX&, const casadi::DM&, const casadi::DM&);
-	void append(const casadi::MX&, const casadi::DM&, const casadi::DM&, const casadi::DM&);
-
-
 };
 
 #endif /* INCLUDE_NLP_H_ */

@@ -22,6 +22,8 @@
 	void DEBUG( const casadi::SX &sx, const std::string& str="" );
 	void DEBUG( const casadi::DM &dm, const std::string& str="" );
 	void DEBUG( const casadi::MX &mx, const std::string& str="" );
+	void DEBUG( const std::vector<casadi::DM> &v, const std::string& str="" );
+	void DEBUG( const std::vector<casadi::MX> &v, const std::string& str="" );
 
 #else
 
@@ -30,6 +32,8 @@
 	inline void DEBUG( const casadi::SX &sx, const std::string& str="" ){};
 	inline void DEBUG( const casadi::DM &sx, const std::string& str="" ){};
 	inline void DEBUG( const casadi::MX &sx, const std::string& str="" ){};
+	inline void DEBUG( const std::vector<casadi::DM> &v, const std::string& str="" ){};
+	inline void DEBUG( const std::vector<casadi::MX> &v, const std::string& str="" ){};
 
 #endif
 

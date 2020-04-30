@@ -68,5 +68,37 @@
 		}
 	}
 
+	void DEBUG( const std::vector<casadi::MX> &v, const std::string& str )
+	{
+		if( !str.empty() )
+			std::cout << "DEBUG: " << str << boost::format{"(1x%1%)"} %  v.size()  << '\n';
+
+
+		for( int i =0; i<v.size(); i++) {
+			if( i==0 )
+				std::cout << "DEBUG: [[ "<< v[i] << ", ";
+			else if( i == v.size()-1 )
+				std::cout << v[i] << " ]]\n";
+			else
+				std::cout << v[i] << ", ";
+		}
+	}
+
+	void DEBUG( const std::vector<casadi::DM> &v, const std::string& str )
+		{
+			if( !str.empty() )
+				std::cout << "DEBUG: " << str << boost::format{"(1x%1%)"} %  v.size()  << '\n';
+
+
+			for( int i =0; i<v.size(); i++) {
+				if( i==0 )
+					std::cout << "DEBUG: [[ "<< v[i] << ", ";
+				else if( i == v.size()-1 )
+					std::cout << v[i] << " ]]\n";
+				else
+					std::cout << v[i] << ", ";
+			}
+		}
+
 #endif
 
