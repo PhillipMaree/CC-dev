@@ -9,6 +9,7 @@
 #define INCLUDE_NLP_H_
 
 #include "../inc/ocp.h"
+#include <iterator>
 
 class ColC {
 public:
@@ -32,24 +33,47 @@ public:
 	~DictC( void ) {}
 
 	void append(std::string key, T val) {
-		T_dict[key].push_back(std::vector<T>(val));
-	}
-	void append(std::string key, std::vector<T> val) {
-		T_dict[key].push_back(val);
+		std::vector<T> v(val);
+
+		itr = T_dict.find( key );
+		if( itr == T_dict.end() )
+			T_dict[key].insert(T_dict[key].end(),v.begin() , v.end());
+		else
+			itr->second.insert(itr->second.end(),v.begin() , v.end());
 	}
 
 	T eval(std::string key) {
-		std::vector<T> v;
 
 		itr = T_dict.find( key );
-		if( itr != T_dict.end() ) {
-			for(int i=0; i< itr->second.size(); i++) {
-				T m = itr->second[i];
-				for(int j=0;j< (m.size1() < m.size2() ? m.size2() : m.size1() );j++)
-					v.push_back(m(j));
-			}
+		if( itr != T_dict.end() )
+			return T(itr->second);
+		else
+			return T();
+
+	}
+
+	struct ProxySt {
+	public:
+		ProxySt(  std::vector<T>& v_ ) : v(v_) {}
+
+
+		void append( T val) {
+			std::vector<T> v_(val);
+			v.insert(v.end(),v_.begin() , v_.end());
 		}
-		return T(v);
+
+		T eval( void ) {
+			return T(v);
+		}
+		std::vector<T>& v;
+	};
+
+	ProxySt operator[](std::string key) {
+		itr = T_dict.find( key );
+		if( itr != T_dict.end() )
+			return ProxySt( itr->second ) ;
+		else
+			return ProxySt( T_dict[key] );
 	}
 
 protected:

@@ -57,6 +57,18 @@ int main( void )
 
     DEBUG( test.eval("t").T() , "t");
 
+    DictC<casadi::DM> test2;
+
+    test2["u"].append(casadi::DM({1,2,3}));
+    test2["u"].append(casadi::DM({1}));
+
+    test2["p"].append(casadi::DM({3,4,5}));
+    test2["p"].append(casadi::DM({1,2,3}));
+
+
+    DEBUG( test2["u"].eval() , "u");
+    DEBUG( test2["p"].eval() , "p");
+
 	return 0;
 }
 
