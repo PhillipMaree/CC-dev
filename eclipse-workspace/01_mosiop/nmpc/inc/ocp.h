@@ -18,12 +18,8 @@ class VmC : public casadi::MX {
 public:
 
 	VmC( void ){};
-	VmC( const std::string name, const casadi::DM& val ) : casadi::MX( casadi::MX::sym(name, val.size1(), val.size2()) ), lbx_dm(val) {
-		DEBUG( boost::format{"Added %1% [%2%x%3%]"} % name % this->size1() % this->size2() );
-	}
-	VmC( const std::string name, const casadi::DM& lb, const casadi::DM& ub ) : casadi::MX( casadi::MX::sym(name, lb.size1(), lb.size2()) ), lbx_dm(lb), ubx_dm(ub) {
-		DEBUG( boost::format{"Added %1% [%2%x%3%]"} % name % this->size1() % this->size2() );
-	}
+	VmC( const std::string name, const casadi::DM& val ) : casadi::MX( casadi::MX::sym(name, val.size1(), val.size2()) ), lbx_dm(val) {}
+	VmC( const std::string name, const casadi::DM& lb, const casadi::DM& ub ) : casadi::MX( casadi::MX::sym(name, lb.size1(), lb.size2()) ), lbx_dm(lb), ubx_dm(ub) {}
 	~VmC( void ){};
 
 	const std::string name() { return this->get_str(); }

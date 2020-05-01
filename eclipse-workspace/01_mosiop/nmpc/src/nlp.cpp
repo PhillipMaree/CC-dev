@@ -145,15 +145,20 @@ void NlpC::report( void )
 	int nlp_c_var_n = N*K*n;
 	int nlp_t_var_n = nlp_u_var_n+nlp_y_var_n+nlp_c_var_n;
 
-	printf( "MPC problem for application <%s> with OCP final time horizon tf=%.1f\n"
-			"with prediction horizon N=%d at stage step-size h=%.1f\n\n", appOcp.name.c_str(), tf,  N, h );
-
-	printf("NLP initialized with collocation scheme: %s of degree(order) %d(%d)\n", scheme.c_str(), K, K+1 );
-
-	printf("with: %d total variables of which:\n"
-		   "      %d differential variables\n"
-		   "      %d piece-wise constant control variables\n"
-		   "      %d collocation variables\n", nlp_t_var_n, nlp_y_var_n, nlp_u_var_n, nlp_c_var_n);
+	printf( "\nMOdelling, SImulation & OPtimization (MOSIOP):\n"
+			"==============================================\n\n"
+			"   target = %s\n"
+			"   tf     = %.1f (OCP final time horizon optimization)\n"
+			"   N      = %d   (MPC prediction horizon stages)\n"
+			"   h      = %.3f (MPC stage step size)\n\n"
+			"NLP configuration (direct-collocation):\n"
+			"=======================================\n\n"
+			"   scheme = %s\n"
+			"   K      = %d (degree)\n"
+			"   nlp_T  = %d (total of NLP variables)\n"
+			"   nlp_Y  = %d (differential variables)\n"
+			"   nlp_U  = %d (piece-wise constant control variables)\n"
+			"   nlp_C  = %d (collocation variables)\n\n", appOcp.name.c_str(), tf, N, (tf/N), scheme.c_str(), K, nlp_t_var_n, nlp_y_var_n, nlp_u_var_n, nlp_c_var_n );
 
 }
 
@@ -208,28 +213,6 @@ void NlpC::transcribe_nlp( void )
 	/*
 	 * transcribe the OCP problem
 	 */
-
-
-	if( casadiFn["f"].exists() )
-	{
-		DEBUG("Function exists");
-		DEBUG(casadiFn["f"](t(1,1),c(1,1),u(0)));
-	}
-	else{
-		DEBUG("Function does not exists");
-	}
-
-	//MXDict f_tau_i =fn_map.find( "fn_f" )->second( MXDict{{"t",t(1,1)},{"y",c(1,1)},{"u",u(0)}} );
-
-	//std::cout << y_k_p-f_tau_i.find("f")->second*h;
-
-	//std::cout << y_k_p << "\n";
-	//std::cout << f_tau_i.<< "\n";
-	//std::cout << f_tau_i[1]*h << "\n";
-
-
-
-#if 0
 	for( int k=0; k<N; k++ ) {
 
 		/*
@@ -254,15 +237,10 @@ void NlpC::transcribe_nlp( void )
 			for( int tau_j=1; tau_j<K+1; tau_j++ )
 				y_k_p += C(tau_j, tau_i)*c(k,tau_j);
 
-			if( linkedFn( "fn_f", fn ) ) {
-
-				std::vector<MX> f_tau_i =fn( std::vector<casadi::MX>({t(k,tau_i),c(k,tau_i),u(k)}) );
-
-
-				//mx_nlp["g"].append( y_k_p(1) - f_tau_i(1) );
-				//dm_nlp["lbg"].append( DM().zeros(appOcp.y.sparsity()) );
-				//dm_nlp["ubg"].append( DM().zeros(appOcp.y.sparsity()) );
-
+			if( casadiFn["f"].exists() ) {
+				mx_nlp["g"].append( y_k_p - h*casadiFn["f"](t(k,tau_i),c(k,tau_i),u(k)) );
+				dm_nlp["lbg"].append( DM().zeros(appOcp.y.sparsity()) );
+				dm_nlp["ubg"].append( DM().zeros(appOcp.y.sparsity()) );
 			}
 
 		}
@@ -273,7 +251,7 @@ void NlpC::transcribe_nlp( void )
 		 */
 	}
 
-#endif
+
 
 
 
