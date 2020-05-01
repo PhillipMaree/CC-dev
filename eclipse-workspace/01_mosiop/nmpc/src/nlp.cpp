@@ -69,9 +69,8 @@ NlpC::NlpC( float tf, int N_ ) :
 		n(ocp.y.size().first),    // number ofg
 		m(ocp.u.size().first),
 		stats(n,m,N,K),
-		offsets(K)
+		offset(K)
 {
-	structure();
 	transcribe();
 }
 
@@ -86,8 +85,19 @@ void NlpC::report( void )
 	DEBUG(D, "D");
 }
 
-void NlpC::structure( void )
+void NlpC::transcribe( void )
 {
+	/*
+	 * lambda functions for quick index referencing of DM/MX matrices
+	 */
+	auto y = [this](int k)       { return mx_nlp["x"]( k*offset.stage + offset.y ); };
+	auto c = [this](int k, int j){ return mx_nlp["x"]( k*offset.stage + offset.c - 1 + j ); };
+	auto u = [this](int k)       { return mx_nlp["x"]( k*offset.stage + offset.u ); };
+	auto t = [this](int k, int j){ return dm_nlp["t"]( k*(1+K) +j ); };
+
+	/*
+	 * generate NLP variable structure
+	 */
 	for( int k=0; k<N; k++ ) {
 
 		dm_nlp["t"].append( DM({( k+tau(0) )*h}) );
@@ -119,18 +129,36 @@ void NlpC::structure( void )
 	dm_nlp["ubx"].append( ocp.y.ubx() );
 	dm_nlp["x0"].append( ocp.y.x0() );
 
+	/*
+	 * transcribe the OCP problem
+	 */
 
-	DEBUG( dm_nlp["t"].eval(), "t");
-	DEBUG( dm_nlp["ubx"].eval(), "ubx");
-	DEBUG( mx_nlp["x"].eval(), "x");
+	//mx_nlp["x"].concatenate();
+	DEBUG( mx_nlp["x"].concatenate(), "x");
+	DEBUG( mx_nlp["x"](0), "x");
+
+//	DEBUG( dm_nlp["t"].concatenate(), "t");
+	DEBUG( u(0), "u(0)");
+	DEBUG( u(2), "u(2)");
+	DEBUG( u(5), "u(5)");
+	DEBUG( u(9), "u(9)");
+	DEBUG( y(0), "y(0)");
+	DEBUG( y(3), "y(3)");
+	DEBUG( y(5), "y(5)");
+	DEBUG( y(N), "y(10)");
+	DEBUG( t(0,0), "t(0,0)");
+	DEBUG( t(2,1), "t(2,1)");
+	DEBUG( t(5,2), "t(5,2)");
+	DEBUG( t(N,0), "t(10,0)");
+
+
+//	DEBUG( mx_nlp["x"].concatenate(), "x");
 	//DEBUG( mx_nlp["x"].eval().T(), "x");
 	//DEBUG( dm_nlp["x0"].eval().T(), "x0");
 
 
-}
 
-void NlpC::transcribe( void )
-{
 
 }
+
 

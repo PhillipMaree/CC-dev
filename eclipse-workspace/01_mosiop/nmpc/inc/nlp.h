@@ -38,11 +38,25 @@ public:
 
 
 		void append( T val) {
-			for (int i=0; i< val.size1(); i++)
-				v.push_back(val(i));
+			v.push_back( val );
+			//for (int i=0; i< val.size1(); i++)
+			//	v.push_back(val(i));
 		}
 
-		std::vector<T> eval( void ) { return v; }
+		std::vector<T> concatenate( void ) {
+
+			std::vector<T> v_;
+			typename std::vector<T>::iterator itr;
+
+			for( itr = v.begin(); itr != v.end(); itr++ )
+				for( int i=0; i<itr.operator *().size1() ; i++ )
+					v_.push_back( itr.operator *()(i) );
+
+			return v_;
+		}
+
+		T& operator()(int k) { return v[k]; }
+
 
 	protected:
 		std::vector<T>& v;
@@ -96,18 +110,12 @@ protected:
 	};
 
 	// NLP fast index offset
-	struct IdxOffSt {
+	struct IdxOffsetSt {
 	public:
-		IdxOffSt(const int K) {
-			yoff=0;
-			coff=yoff+1;
-			uoff=coff+K;
-			poff=poff+1;
-		}
-		~IdxOffSt( void ){}
+		IdxOffsetSt(const int K) : y(0), c(1), u(1+K), stage(2+K) {}
+		~IdxOffsetSt( void ){}
 
-	private:
-		int yoff, coff, uoff, poff;
+		const int y, c, u, stage;
 	};
 
 	AppOcpC ocp;       // application spesific OCP
@@ -119,9 +127,8 @@ protected:
 	DictC<casadi::DM> dm_nlp;
 
 	VarStatsSt stats;
-	IdxOffSt offsets;
+	IdxOffsetSt offset;
 
-	void structure( void );
 	void transcribe( void );
 };
 
