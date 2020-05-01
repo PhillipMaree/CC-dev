@@ -14,14 +14,12 @@
 class MpcC {
 public:
 
-	MpcC( float tf, int N ) : nlp( tf, N ){ report();};
+	MpcC( float tf, int N ) : nlp( tf, N ){ };
 	~MpcC( void){};
 
 protected:
 
 	NlpC nlp;
-
-	void report( void);
 
 };
 

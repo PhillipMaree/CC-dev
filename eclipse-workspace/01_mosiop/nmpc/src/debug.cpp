@@ -9,6 +9,11 @@
 
 #ifdef DEBUG_ENABLED
 
+	void DEBUG( const int val  )
+	{
+		printf("%d\n", val);
+	}
+
 	void DEBUG( const std::string& str  )
 	{
 		printf("DEBUG: %s\n", str.c_str());

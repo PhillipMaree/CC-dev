@@ -17,6 +17,7 @@
 
 #ifdef DEBUG_ENABLED
 
+	void DEBUG( const int val  );
 	void DEBUG( const std::string& str  );
 	void DEBUG( const boost::format& fmt );
 	void DEBUG( const casadi::SX &sx, const std::string& str="" );
@@ -27,6 +28,7 @@
 
 #else
 
+	inline void DEBUG( const int val ){};
 	inline void DEBUG( const std::string& str  ){};
 	inline void DEBUG( const boost::format& fmt ){};
 	inline void DEBUG( const casadi::SX &sx, const std::string& str="" ){};

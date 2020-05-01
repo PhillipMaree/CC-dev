@@ -18,13 +18,13 @@ CstrC::CstrC( float tf ): OcpC( tf, "Acetylene hydrogenation CSTR process" ) {
 }
 
 
-casadi::MX CstrC::L(void)
+casadi::MX CstrC::l(void)
 {
 	casadi::MX x3 = y(2);
 	return -x3;
 }
 
-casadi::MX CstrC::M(void)
+casadi::MX CstrC::m(void)
 {
 	casadi::MX x3 = y(2);
 	return -x3;

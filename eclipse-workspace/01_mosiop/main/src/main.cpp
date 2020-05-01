@@ -8,7 +8,6 @@
 
 int main( void )
 {
-
 	MpcC mpc(1,10);
 
 	return 0;

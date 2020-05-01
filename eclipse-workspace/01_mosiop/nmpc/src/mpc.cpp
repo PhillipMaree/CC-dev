@@ -11,7 +11,7 @@
 /*
  * Extern functions to be called from Modelica environment.
  */
-extern "C" void* createSolver( double tf, double N )
+extern "C" void* create_solver( double tf, double N )
 {
 	printf("Create solve for  N=%i, tf=%.f, h=%.3f\n", (int)N, (float)tf, (float)tf/N);
 
@@ -20,7 +20,7 @@ extern "C" void* createSolver( double tf, double N )
 	return (void*)solver;
 }
 
-extern "C" void destroySolver( void* vptr )
+extern "C" void destroy_solver( void* vptr )
 {
 	printf("Delete instance of solver\n");
 
@@ -35,10 +35,6 @@ extern "C" double solve(void * vptr, double x1, double x2, double x3 )
     return 0;
 }
 
-void MpcC::report( void)
-{
-	nlp.report();
-}
 
 
 
