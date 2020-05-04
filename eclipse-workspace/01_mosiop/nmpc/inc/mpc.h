@@ -14,7 +14,7 @@
 class MpcC {
 public:
 
-	MpcC( float tf, int N ) : nlp( tf, N ){ };
+	MpcC( float tf, int N, int K=3) : nlp( tf, N, K ){ };
 	~MpcC( void){};
 
 protected:

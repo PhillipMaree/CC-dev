@@ -38,14 +38,17 @@ protected:
 
 	struct ProxySt {
 	public:
-		ProxySt(  std::vector<T>& v_ ) : v(v_) {}
 
-        void append( T val) { v.push_back( val ); }
-        std::vector<T> concatenate( void );
-        T& operator()(int k) { return v[k]; }
+		ProxySt(  std::vector<T>& T_vec ) : vec(T_vec) {}
+
+        void append( T val) { vec.push_back( val ); }
+        T concatenate( void ) { return vertcat(vec); };
+
+        T& operator()(int k) { return vec[k]; }
+        void operator+=(T val);
 
 	protected:
-		std::vector<T>& v;
+		std::vector<T>& vec;
 	};
 
 	typename std::map<std::string, std::vector<T>> T_dict;
@@ -102,7 +105,7 @@ public:
 class NlpC : public ColC {
 public:
 
-	NlpC( float tf, int N_);
+	NlpC( float , int , int);
 	~NlpC( void ){};
 
 protected:
@@ -110,6 +113,7 @@ protected:
 
 	AppOcpC appOcp;
 	CasadiFnC casadiFn;
+	casadi::Function solver;
 
 	bool linked_fn( std::string fn, casadi::Function& link );
 	void build_nlp_struct( void );
@@ -121,7 +125,7 @@ protected:
 
 	const float tf, h;
 	const int N, n, m;
-	const int y_offset, c_offset, u_offset, stage_offset;
+	const int y_offset, c_offset, u_offset, stage_offset, nlp_u_var_n, nlp_y_var_n, nlp_c_var_n, nlp_g_var_n, nlp_t_var_n;
 
 };
 

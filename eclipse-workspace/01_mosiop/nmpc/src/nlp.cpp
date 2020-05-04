@@ -59,20 +59,16 @@ ColC::ColC( int K_, std::string scheme_) : K(K_), scheme(scheme_)
 
 	}
 
+	DEBUG(B,"Col B");
+
 };
 
 template <typename T>
-std::vector<T> DictC<T>::ProxySt::concatenate( void )
-{
-
-	std::vector<T> v_;
-	typename std::vector<T>::iterator itr;
-
-	for( itr = v.begin(); itr != v.end(); itr++ )
-		for( int i=0; i<itr.operator *().size1() ; i++ )
-			v_.push_back( itr.operator *()(i) );
-
-	return v_;
+void DictC<T>::ProxySt::operator+=(T val) {
+	if (vec.empty())
+		vec.push_back( val );
+	else
+		vec.front() += val;
 }
 
 template <typename T>
@@ -88,12 +84,12 @@ typename DictC<T>::ProxySt DictC<T>::operator[](std::string key)
 void CasadiFnC::link_fn( void )
 {
 	if( appOcp->l().sparsity().density() ) {
-		casadi::Function l = casadi::Function( "l", { appOcp->t, appOcp->y, appOcp->u }, {appOcp->l()}, {"t", "y", "u"}, {"l"} ) ;
+		casadi::Function l = casadi::Function( "fn_l", { appOcp->t, appOcp->y, appOcp->u }, {appOcp->l()}, {"t", "y", "u"}, {"l"} ) ;
 		fn_map.insert( std::pair<std::string, casadi::Function>("l", l ));
 	}
 
 	if( appOcp->m().sparsity().density() ) {
-		casadi::Function m = casadi::Function( "fn_M", { appOcp->t, appOcp->y, appOcp->u }, {appOcp->m()}, {"t", "y", "u"}, {"m"} ) ;
+		casadi::Function m = casadi::Function( "fn_m", { appOcp->t, appOcp->y, appOcp->u }, {appOcp->m()}, {"t", "y", "u"}, {"m"} ) ;
 		fn_map.insert( std::pair<std::string, casadi::Function>("m", m ));
 	}
 
@@ -126,24 +122,27 @@ CasadiFnC::ProxySt CasadiFnC::operator[](std::string fn_name)
  * NLP formulation class functions
  */
 
-NlpC::NlpC( float tf_, int N_ ) :
-		ColC( 3, "legendre"), appOcp( tf_ ), casadiFn(&appOcp),
-		tf(tf_), h(tf_/N), N(N_),
+NlpC::NlpC( float tf_, int N_, int K_ ) :
+		ColC( K_, "legendre"), appOcp( tf_ ), casadiFn(&appOcp),
+		tf(tf_), h(tf_/N_), N(N_),
 		n(appOcp.y.size1()), m(appOcp.u.size1()),
-		y_offset(0), c_offset(1), u_offset(1+K), stage_offset(2+K)
+		y_offset(0), c_offset(1), u_offset(1+K_), stage_offset(2+K_),
+		nlp_u_var_n(N*m), nlp_y_var_n((N+1)*n), nlp_c_var_n(N*K*n), nlp_g_var_n(N*(1+K)*n), nlp_t_var_n(nlp_u_var_n+nlp_y_var_n+nlp_c_var_n)
 {
+
 	build_nlp_struct();
 	transcribe_nlp();
 
 	report();
+
+	DEBUG(y_offset,"y_offset");
+	DEBUG(c_offset,"c_offset");
+	DEBUG(u_offset,"u_offset");
+	DEBUG(stage_offset,"stage_offset");
 }
 
 void NlpC::report( void )
 {
-	int nlp_u_var_n = N*m;
-	int nlp_y_var_n = (N+1)*n;
-	int nlp_c_var_n = N*K*n;
-	int nlp_t_var_n = nlp_u_var_n+nlp_y_var_n+nlp_c_var_n;
 
 	printf( "\nMOdelling, SImulation & OPtimization (MOSIOP):\n"
 			"==============================================\n\n"
@@ -155,10 +154,16 @@ void NlpC::report( void )
 			"=======================================\n\n"
 			"   scheme = %s\n"
 			"   K      = %d (degree)\n"
-			"   nlp_T  = %d (total of NLP variables)\n"
-			"   nlp_Y  = %d (differential variables)\n"
-			"   nlp_U  = %d (piece-wise constant control variables)\n"
-			"   nlp_C  = %d (collocation variables)\n\n", appOcp.name.c_str(), tf, N, (tf/N), scheme.c_str(), K, nlp_t_var_n, nlp_y_var_n, nlp_u_var_n, nlp_c_var_n );
+			"   nlp_t  = %d (total of NLP variables)\n"
+			"   nlp_y  = %d (differential variables)\n"
+			"   nlp_u  = %d (piece-wise constant control variables)\n"
+			"   nlp_g  = %d (residual constraints on collocation equations)\n"
+			"   nlp_c  = %d (collocation variables)\n\n", appOcp.name.c_str(), tf, N, (tf/N), scheme.c_str(), K,
+			nlp_t_var_n,
+			nlp_y_var_n,
+			nlp_u_var_n,
+			nlp_g_var_n,
+			nlp_c_var_n );
 
 }
 
@@ -191,6 +196,10 @@ void NlpC::build_nlp_struct( void )
 		dm_nlp["ubx"].append( appOcp.u.ubx() );
 		dm_nlp["x0"].append( appOcp.u.x0() );
 	}
+
+	/*
+	 * append terminal state x(N) = f(x(N-1), u(N-1)). consider collocation point
+	 */
 	dm_nlp["t"].append( DM({N*h}) );
 
 	mx_nlp["x"].append( MX::sym( appOcp.y.name()+"_"+std::to_string(N), appOcp.y.sparsity() )  );
@@ -202,22 +211,18 @@ void NlpC::build_nlp_struct( void )
 
 void NlpC::transcribe_nlp( void )
 {
-	/*
-	 * lambda functions for quick index referencing of DM/MX matrices
-	 */
+
+	// lambda functions for quick index referencing of DM/MX matrices
 	auto y = [this](int k)       { return mx_nlp["x"]( k*stage_offset + y_offset ); };
 	auto c = [this](int k, int j){ return mx_nlp["x"]( k*stage_offset + c_offset - 1 + j ); };
 	auto u = [this](int k)       { return mx_nlp["x"]( k*stage_offset + u_offset ); };
 	auto t = [this](int k, int j){ return dm_nlp["t"]( k*(1+K) +j ); };
 
-	/*
-	 * transcribe the OCP problem
-	 */
+	// transcribe the OCP problem
 	for( int k=0; k<N; k++ ) {
 
-		/*
-		 * continuity boundary constraints
-		 */
+
+		// continuity boundary constraints
 		MX y_k_end = D(0)*y(k);
 
 		for( int tau_j = 1; tau_j<K+1; tau_j++ )
@@ -227,9 +232,7 @@ void NlpC::transcribe_nlp( void )
 		dm_nlp["lbg"].append( DM().zeros(appOcp.y.sparsity()) );
 		dm_nlp["ubg"].append( DM().zeros(appOcp.y.sparsity()) );
 
-		/*
-		 * residual constraints for collocation equations
-		 */
+		// residual constraints for collocation equations
 		for( int tau_i=1; tau_i<K+1; tau_i++ ) {
 
 			MX y_k_p = C(0,tau_i)*y(k);
@@ -245,15 +248,37 @@ void NlpC::transcribe_nlp( void )
 
 		}
 
+		// add mpc stage cost / terminal cost
+		std::string cost_type = k<N-1 || N == 1 ? "l" : "m";
 
-		/*
-		 *
-		 */
+		if( casadiFn[ cost_type ].exists() )
+			for( int tau_i=1; tau_i<K+1; tau_i++)
+				mx_nlp[ "J" ] += h*B( tau_i )*casadiFn[ cost_type ](t(k,tau_i),c(k,tau_i),u(k));
+
+		//
+
 	}
 
 
+	//create casadi NLP solver
+	MXDict nlp = {{"x", mx_nlp["x"].concatenate() }, {"f", mx_nlp[ "J" ].concatenate()  }, {"g", mx_nlp["g"].concatenate()}};
 
+	// solve options
+	Dict solver_opts;
+	std::string solver_name = "ipopt";
 
+	solver_opts["verbose"] = true;
+
+	solver = nlpsol("nlpsol", solver_name, nlp, solver_opts );
+
+	// Bounds and initial guess
+	DMDict arg = {{"x0",dm_nlp["x0"].concatenate()},
+			      {"lbx",dm_nlp["lbx"].concatenate()},
+			      {"ubx", dm_nlp["ubx"].concatenate()},
+			      {"lbg", dm_nlp["lbg"].concatenate()},
+			      {"ubg", dm_nlp["ubg"].concatenate()}};
+
+	solver( arg );
 
 }
 

@@ -46,14 +46,14 @@ public:
 	OcpC( float tf, std::string name_="empty" ) : name(name_) { t = VmC("t",casadi::DM(1), casadi::DM(tf)); }
 	virtual ~OcpC( void ) {};
 
-	virtual casadi::MX l(void){ return casadi::MX(); }  // legendre cost term
-    virtual casadi::MX m(void){ return casadi::MX(); }  // mayer cost term
+	virtual casadi::MX l(void) = 0;                     // legendre cost term
+    virtual casadi::MX m(void){ return casadi::MX(); } ;// mayer cost term
 
-	virtual casadi::MX f(void){ return casadi::MX(); }  // dynamic state equality constraints
+	virtual casadi::MX f(void) = 0;                     // dynamic state equality constraints
 	virtual casadi::MX g(void){ return casadi::MX(); }  // algebraic equality constraints
 	virtual casadi::MX h(void){ return casadi::MX(); }  // algebraic inequality constraints
 
-	VM t,y,u,p;                                         // time, states, control, parameter variables
+	VM t,y,u;                                           // time, states, control
     std::string name;
 };
 

@@ -9,9 +9,14 @@
 
 #ifdef DEBUG_ENABLED
 
-	void DEBUG( const int val  )
+	void DEBUG( const int val, const std::string& str   )
 	{
-		printf("%d\n", val);
+		printf("%s = %d\n", str.c_str(), val);
+	}
+
+	void DEBUG( const float val, const std::string& str   )
+	{
+		printf("%s = %.3f\n", str.c_str() ,val);
 	}
 
 	void DEBUG( const std::string& str  )

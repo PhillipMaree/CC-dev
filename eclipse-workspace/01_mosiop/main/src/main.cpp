@@ -8,7 +8,7 @@
 
 int main( void )
 {
-	MpcC mpc(1,10);
+	MpcC mpc(10,10, 3);
 
 	return 0;
 }
