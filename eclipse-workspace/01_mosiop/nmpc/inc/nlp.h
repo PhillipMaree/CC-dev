@@ -108,8 +108,9 @@ public:
 	NlpC( float , int , int);
 	~NlpC( void ){};
 
-protected:
+	void solve(casadi::DMDict&, casadi::DMDict&);
 
+protected:
 
 	AppOcpC appOcp;
 	CasadiFnC casadiFn;
@@ -122,6 +123,7 @@ protected:
 
 	DictC<casadi::MX> mx_nlp;
 	DictC<casadi::DM> dm_nlp;
+	casadi::DMDict arg_nlp;
 
 	const float tf, h;
 	const int N, n, m;

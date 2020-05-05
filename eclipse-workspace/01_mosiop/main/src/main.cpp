@@ -8,7 +8,14 @@
 
 int main( void )
 {
-	MpcC mpc(10,10, 3);
+
+	void * vptr = create_solver( 1, 2, 1 );
+
+	casadi::DMDict res, arg = {{"x0",casadi::DM({0.1,0.3,0.4})}};
+
+	((MpcC*)vptr)->solve(arg, res);
+
+	destroy_solver( vptr );
 
 	return 0;
 }

@@ -60,6 +60,7 @@ ColC::ColC( int K_, std::string scheme_) : K(K_), scheme(scheme_)
 	}
 
 	DEBUG(B,"Col B");
+	DEBUG(C,"Col C");
 
 };
 
@@ -141,24 +142,167 @@ NlpC::NlpC( float tf_, int N_, int K_ ) :
 	DEBUG(stage_offset,"stage_offset");
 }
 
+void NlpC::solve(casadi::DMDict& arg, casadi::DMDict& mpc_res)
+{
+	// set initiliza conditions
+	arg_nlp["x0"].set(arg["x0"], true, Slice(0,arg["x0"].size1(),1), Slice());
+	arg_nlp["lbx"].set(arg["x0"], true, Slice(0,arg["x0"].size1(),1), Slice());
+	arg_nlp["ubx"].set(arg["x0"], true, Slice(0,arg["x0"].size1(),1), Slice());
+
+	// solve NLP problem
+	casadi::DMDict nlp_res = solver( arg_nlp );
+
+	casadi::DMDict::iterator itr;
+
+	for( itr = nlp_res.begin(); itr!=nlp_res.end(); itr++ )
+		DEBUG( itr->first );
+
+	DM x = nlp_res["x"];
+
+	DEBUG(nlp_res["x"],"x_opt");
+
+	DM u_opt(m,N), x_opt(n,(1+K)*N + 1);
+	for( int k=0;k<N; k++) {
+		int k_offset = k*( (K+1)*n +m );
+
+		// extract control
+		u_opt.set( x( Slice( k_offset +(K+1)*n, k_offset +(K+1)*n + m , 1 ) ),true,Slice(), Slice(k,k+1,1)  );
+
+		// extract states with collocation points
+		for( int j=0; j<K+1; j++) {
+			DM x_j = x( Slice( k_offset +j*n, k_offset +(j+1)*n, 1 ) );
+
+			DEBUG(x_j,"x_j");
+
+			x_opt.set( x_j, true, Slice(0,n,1), Slice(k*(K+1)+j,k*(K+1)+j+1,1));
+
+		}
+
+		// terminal state
+		if( k==N-1 ) {
+
+		}
+	}
+	DM x_j = x( Slice( ((K+1)*n + m)*N, x.size1(), 1 ) );
+	x_opt.set( x_j, true, Slice(0,n,1), Slice(N*(K+1),N*(K+1)+1,1) );
+
+	DEBUG(x_j,"x_j");
+
+	DEBUG(mx_nlp["x"].concatenate(),"x");
+	DEBUG(u_opt,"u_opt");
+	DEBUG(x_opt,"x_opt");
+	DEBUG(dm_nlp["t"].concatenate(),"t");
+
+	// extract MPC open-loop solution
+
+	//DEBUG( mx_nlp["x"].concatenate(), "x0");
+
+/*	int stage_len = n+n*K+m;
+	MX x = mx_nlp["x"].concatenate();
+	MX xtf = x(Slice( stage_len*N, x.size1(),1 ));
+	MX xN = x(Slice( 0, stage_len*N, 1 ));
+
+	MX u(m,N), y(n,(1+K)*N + 1);*/
+/*
+	for( int k=0;k<N; k++) {
+		int k_offset = k*( (K+1)*n +m );
+		for( int j=0; j<K; j++ ) {
+			MX x_j = x( Slice( k_offset +j*n, k_offset +(j+1)*n, 1 ) );
+
+			y.set( x_j, true, Slice(), Slice(k,k+1,1));
+
+			//DEBUG(x_j,"x_j");
+		}
+		MX u_k =  x( Slice( k_offset +(K+1)*n, k_offset +(K+1)*n + m , 1 ) );
+
+
+
+		u.set(u_k,true,Slice(), Slice(k,k+1,1) );
+
+	}
+	MX x_j = x( Slice( ((K+1)*n + m)*N, x.size1(), 1 ) );
+
+	y.set( x_j, true, Slice(), Slice(N,N+1,1));
+
+*/
+
+
+	/*
+
+	for( int k =0; k<x.size1()-n; k += (K+1)*n + m ) {
+
+		for( int j=0; j<n; j++ ) {
+			MX x_j = x( Slice( k+j*n, k+(j+1)*n, 1 ), Slice() );
+
+			DEBUG(x_j,"x_j");
+
+			y.set( x_j(Slice(),Slice()), false, Slice(stage+j,stage+j+1,1), Slice() );
+
+
+		}
+		stage++;
+	}
+*/
+
+
+	//xi.reshape(xi,stage_len, N);
+
+
+	//DEBUG(y,"y");
+	//DEBUG(xtf,"xN");
+
+	//x.reshape(n+n*K+m, )
+
+	//MX y(n*(1+(K+1)*N),1), u(m*N,1);
+
+
+	for( int k=0; k<N; k+= n*(K+1)+m ) {
+		//MX x_slice = x( Slice(k*(n*(K+1)+m), (k+1)*(n*(K+1)+m),1) );
+		//y.set( x( Slice(k*(n*(K+1)+m), (k+1)*(n*(K+1)+m),1) ))
+	}
+
+
+
+/*	DMDict arg = {{"x0",dm_nlp["x0"].concatenate()},
+			      {"lbx",dm_nlp["lbx"].concatenate()},
+			      {"ubx", dm_nlp["ubx"].concatenate()},
+			      {"lbg", dm_nlp["lbg"].concatenate()},
+			      {"ubg", dm_nlp["ubg"].concatenate()}};*/
+
+	//DEBUG(arg["x0"],"x0");
+	//DEBUG(dm_nlp["x0"].concatenate(),"nlp x0");
+
+	//for( int i =0; i<)
+
+	//dm_nlp["x0"].concatenate()(0:1)=arg["x0"];
+
+
+
+
+
+
+
+
+
+	//std::cout << res;
+}
+
 void NlpC::report( void )
 {
 
-	printf( "\nMOdelling, SImulation & OPtimization (MOSIOP):\n"
-			"==============================================\n\n"
-			"   target = %s\n"
+	printf( "\033[1;34m\nMOdelling, SImulation & OPtimization (MOSIOP):\n\n"
+			"\033[0;34m   target = %s\n"
 			"   tf     = %.1f (OCP final time horizon optimization)\n"
 			"   N      = %d   (MPC prediction horizon stages)\n"
 			"   h      = %.3f (MPC stage step size)\n\n"
-			"NLP configuration (direct-collocation):\n"
-			"=======================================\n\n"
-			"   scheme = %s\n"
+			"\033[1;34mNLP configuration (direct-collocation):\n\n"
+			"\033[0;34m   scheme = %s\n"
 			"   K      = %d (degree)\n"
 			"   nlp_t  = %d (total of NLP variables)\n"
 			"   nlp_y  = %d (differential variables)\n"
 			"   nlp_u  = %d (piece-wise constant control variables)\n"
 			"   nlp_g  = %d (residual constraints on collocation equations)\n"
-			"   nlp_c  = %d (collocation variables)\n\n", appOcp.name.c_str(), tf, N, (tf/N), scheme.c_str(), K,
+			"   nlp_c  = %d (collocation variables)\033[0m\n\n", appOcp.name.c_str(), tf, N, (tf/N), scheme.c_str(), K,
 			nlp_t_var_n,
 			nlp_y_var_n,
 			nlp_u_var_n,
@@ -255,32 +399,31 @@ void NlpC::transcribe_nlp( void )
 			for( int tau_i=1; tau_i<K+1; tau_i++)
 				mx_nlp[ "J" ] += h*B( tau_i )*casadiFn[ cost_type ](t(k,tau_i),c(k,tau_i),u(k));
 
-		//
-
 	}
 
+	// structure to NLP solver
+	const MXDict nlp = {{"x", mx_nlp["x"].concatenate()},
+			            {"f", mx_nlp["J"].concatenate()},
+				        {"g", mx_nlp["g"].concatenate()}};
 
-	//create casadi NLP solver
-	MXDict nlp = {{"x", mx_nlp["x"].concatenate() }, {"f", mx_nlp[ "J" ].concatenate()  }, {"g", mx_nlp["g"].concatenate()}};
+	// instantiate NLP sovler
+	solver = nlpsol("nlpsol", "ipopt", nlp, {{"verbose", false}} );
 
-	// solve options
-	Dict solver_opts;
-	std::string solver_name = "ipopt";
-
-	solver_opts["verbose"] = true;
-
-	solver = nlpsol("nlpsol", solver_name, nlp, solver_opts );
-
-	// Bounds and initial guess
 	DMDict arg = {{"x0",dm_nlp["x0"].concatenate()},
-			      {"lbx",dm_nlp["lbx"].concatenate()},
-			      {"ubx", dm_nlp["ubx"].concatenate()},
-			      {"lbg", dm_nlp["lbg"].concatenate()},
-			      {"ubg", dm_nlp["ubg"].concatenate()}};
+			{"lbx",dm_nlp["lbx"].concatenate()},
+			{"ubx", dm_nlp["ubx"].concatenate()},
+			{"lbg", dm_nlp["lbg"].concatenate()},
+			{"ubg", dm_nlp["ubg"].concatenate()}};
 
-	solver( arg );
 
+	// arguments to NLP solver
+	arg_nlp = {{"x0",dm_nlp["x0"].concatenate()},
+		       {"lbx",dm_nlp["lbx"].concatenate()},
+		       {"ubx", dm_nlp["ubx"].concatenate()},
+		       {"lbg", dm_nlp["lbg"].concatenate()},
+		       {"ubg", dm_nlp["ubg"].concatenate()}};
 }
+
 
 
 
