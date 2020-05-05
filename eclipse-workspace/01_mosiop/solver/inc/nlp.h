@@ -8,8 +8,20 @@
 #ifndef INCLUDE_NLP_H_
 #define INCLUDE_NLP_H_
 
-#include "../inc/ocp.h"
 #include <iterator>
+#include "../../solver/inc/ocp.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void* create_solver( double tf, double N, double K );
+void destroy_solver( void* vptr );
+double solve(void * vptr, double x1, double x2, double x3 );
+
+#ifdef __cplusplus
+}
+#endif
 
 class ColC {
 public:

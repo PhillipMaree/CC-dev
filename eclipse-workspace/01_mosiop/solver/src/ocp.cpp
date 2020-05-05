@@ -5,7 +5,8 @@
  *      Author: johannes
  */
 
-#include "../inc/ocp.h"
+#include "../../solver/inc/ocp.h"
+
 #include <string>
 
 /*

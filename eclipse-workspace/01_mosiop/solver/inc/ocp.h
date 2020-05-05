@@ -8,7 +8,8 @@
 #define INCLUDE_OCP_H_
 
 #include <casadi/casadi.hpp>
-#include "../inc/debug.h"
+
+#include "../../solver/inc/debug.h"
 
 /*
  * Class for handling complex Casadi variables types

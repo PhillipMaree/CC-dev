@@ -4,7 +4,7 @@
  *  Created on: Apr 27, 2020
  *      Author: johannes
  */
-#include "../inc/debug.h"
+#include "../../solver/inc/debug.h"
 
 
 #ifdef DEBUG_ENABLED
