@@ -12,11 +12,11 @@
 /*
  * Extern NLP solver interface
  */
-void* create_solver( double h, double N, double K )
+void* create_solver( double h, double N)
 {
 	printf("\n\033[1;36mInstantiate NLP solver.\033[0m\n\n" );
 
-	NlpC* solver = new NlpC( (float)h, (int)N, (int)K );
+	NlpC* solver = new NlpC( (float)h, (int)N );
 
 	return (void*)solver;
 }
@@ -155,8 +155,8 @@ CasadiFnC::ProxySt CasadiFnC::operator[](std::string fn_name)
  * NLP formulation class functions
  */
 
-NlpC::NlpC( float h_, int N_, int K_ ) :
-		ColC( K_, "legendre"), appOcp( h_*N_ ), casadiFn(&appOcp),
+NlpC::NlpC( float h_, int N_, int K_, std::string scheme ) :
+		ColC( K_, scheme.c_str() ), appOcp( h_*N_ ), casadiFn(&appOcp),
 		tf(h_*N_), h(h_), N(N_),
 		n(appOcp.y.size1()), m(appOcp.u.size1()),
 		y_offset(0), c_offset(1), u_offset(1+K_), stage_offset(2+K_),
@@ -185,17 +185,13 @@ casadi::DMDict NlpC::solve(casadi::DMDict& arg)
 	casadi::DMDict res_nlp = solver( arg_nlp );
 	casadi::DMDict res;
 
-	//generic information related to OCP
-	res["n"] = n;
-	res["m"] = m;
-
 	// NLP extracted optimal open-loop results
 	res["t"] = dm_nlp["t"].concatenate().T();
 	res["u"] = DM(m,(1+K)*N + 1);
 	res["x"] = DM(n,(1+K)*N + 1);
 
-	DEBUG(res["x"],"x");
-	DEBUG(res["u"],"u");
+	//DEBUG(res["x"],"x");
+	//DEBUG(res["u"],"u");
 
 	// extraction
 	int offset;

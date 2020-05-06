@@ -10,9 +10,9 @@
 void TEST_EXTERN_NLP_OPENLOOP( void );
 void TEST_LOCAL_MPC_CLOSEDLOOP( void );
 
-static const float h=0.3;
-static const int N = 10;
-static const int K = 3;
+static const float h=0.3;   // sampling rate
+static const int N = 10;    // prediction horizon
+static const int T = 10;     // closed-loop simulation time
 
 int main( void )
 {
@@ -24,7 +24,7 @@ int main( void )
 void TEST_EXTERN_NLP_OPENLOOP( void )
 {
 
-	void * vptr = create_solver( h, N, K );
+	void * vptr = create_solver( h, N );
 
 	casadi::DMDict res, arg = {{"x0",casadi::DM({0.1,0.1,0.1})}};
 
@@ -35,12 +35,15 @@ void TEST_EXTERN_NLP_OPENLOOP( void )
 
 void TEST_LOCAL_MPC_CLOSEDLOOP( void )
 {
-	MpcC mpc( h, N, K );
+	MpcC mpc( h, N, T );
 
-	casadi::DMDict arg = {{"x0",casadi::DM({0.1,0.1,0.1})}};
+	casadi::DMDict res, arg = {{"x0",casadi::DM({0.1,0.1,0.1})}};
 
-	mpc.solve(arg, true);
+	res = mpc.solve( arg );
 
+	FigC fig;
+	fig.plot( res["t"], res["x"], res["u"]);
+	fig.show();
 
 }
 

@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-void* create_solver( double tf, double N, double K );
+void* create_solver( double tf, double N );
 void destroy_solver( void* vptr );
 double solve(void * vptr, double x1, double x2, double x3 );
 
@@ -117,7 +117,7 @@ public:
 class NlpC : public ColC {
 public:
 
-	NlpC( float , int , int);
+	NlpC( float , int, int K=3, std::string scheme="legendre");
 	~NlpC( void ){};
 
 	casadi::DMDict solve(casadi::DMDict&);
