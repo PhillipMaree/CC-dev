@@ -16,7 +16,7 @@ void* create_solver( double h, double N, double K )
 {
 	printf("\n\033[1;36mInstantiate NLP solver.\033[0m\n\n" );
 
-	NlpC* solver = new NlpC( (float)h, (int)N, (int)K);
+	NlpC* solver = new NlpC( (float)h, (int)N, (int)K );
 
 	return (void*)solver;
 }
@@ -33,9 +33,9 @@ double solve(void * vptr, double x1, double x2, double x3 )
 {
 	NlpC* solver_ptr = (NlpC*)vptr;
 
-	casadi::DMDict res, arg = {{"x0",casadi::DM({x1,x2,x3})}};
+	casadi::DMDict arg = {{"x0",casadi::DM({x1,x2,x3})}};
 
-	solver_ptr->solve(arg, res);
+	casadi::DMDict res = solver_ptr->solve(arg);
 
     return 0;
 }
@@ -174,7 +174,7 @@ NlpC::NlpC( float h_, int N_, int K_ ) :
 	DEBUG(stage_offset,"stage_offset");
 }
 
-void NlpC::solve(casadi::DMDict& arg, casadi::DMDict& res)
+casadi::DMDict NlpC::solve(casadi::DMDict& arg)
 {
 	// set initiliza conditions
 	arg_nlp["x0"].set(arg["x0"], true, Slice(0,arg["x0"].size1(),1), Slice());
@@ -183,32 +183,41 @@ void NlpC::solve(casadi::DMDict& arg, casadi::DMDict& res)
 
 	// solve NLP problem
 	casadi::DMDict res_nlp = solver( arg_nlp );
+	casadi::DMDict res;
+
+	//generic information related to OCP
+	res["n"] = n;
+	res["m"] = m;
 
 	// NLP extracted optimal open-loop results
 	res["t"] = dm_nlp["t"].concatenate().T();
-	res["u"] = DM(m,N);
+	res["u"] = DM(m,(1+K)*N + 1);
 	res["x"] = DM(n,(1+K)*N + 1);
 
+	DEBUG(res["x"],"x");
+	DEBUG(res["u"],"u");
+
 	// extraction
+	int offset;
 	for( int k=0;k<N; k++) {
-
-		const int k_offset = k*( (K+1)*n +m );
-
-		// extract control
-		res["u"].set( res_nlp["x"]( Slice( k_offset +(K+1)*n, k_offset +(K+1)*n + m , 1 ) ),true,Slice(), Slice(k,k+1,1)  );
-
-		// extract states with collocation points
-		for( int j=0; j<K+1; j++)
-			res["x"].set( res_nlp["x"]( Slice( k_offset +j*n, k_offset +(j+1)*n, 1 ) ), true, Slice(0,n,1), Slice(k*(K+1)+j,k*(K+1)+j+1,1));
-
+        // extract states with collocation points
+		offset = k*( (K+1)*n +m );
+		for( int j=0; j<K+1; j++) {
+			res["x"].set( res_nlp["x"]( Slice( offset +j*n, offset +(j+1)*n, 1 ) ), true, Slice(0,n,1), Slice(k*(K+1)+j,k*(K+1)+j+1,1));
+			res["u"].set( res_nlp["x"]( Slice( offset +(K+1)*n, offset +(K+1)*n + m , 1 ) ),true,Slice(0,m,1), Slice(k*(K+1)+j,k*(K+1)+j+1,1)  );
+		}
 	}
+	// terminal state (control extension)
 	res["x"].set( res_nlp["x"]( Slice( ((K+1)*n + m)*N, res_nlp["x"].size1(), 1 ) ), true, Slice(0,n,1), Slice(N*(K+1),N*(K+1)+1,1) );
+	res["u"].set( res_nlp["x"]( Slice( offset +(K+1)*n, offset +(K+1)*n + m , 1 ) ), true,Slice(0,m,1), Slice(N*(K+1),N*(K+1)+1,1)  );
 
-	DEBUG(res_nlp["x"].T() ,"NLP x");
-	DEBUG(res["t"],"t");
-	DEBUG(res["u"],"MPC u");
-	DEBUG(res["x"],"MPC x");
+	// extract MPC rhc related information
+	res["x0"] = DM(res["x"](Slice(),Slice(0,K+1,1)));
+	res["x1"] = DM(res["x"](Slice(),Slice(K+1,2*(K+1),1)));
+	res["u0"] = DM(res["u"](Slice(),Slice(0,K+1,1)));
+	res["t0"] = DM(res["t"](Slice(),Slice(0,K+1,1)));
 
+	return res;
 }
 
 void NlpC::report( void )

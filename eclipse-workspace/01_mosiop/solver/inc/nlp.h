@@ -120,7 +120,7 @@ public:
 	NlpC( float , int , int);
 	~NlpC( void ){};
 
-	void solve(casadi::DMDict&, casadi::DMDict&);
+	casadi::DMDict solve(casadi::DMDict&);
 
 protected:
 

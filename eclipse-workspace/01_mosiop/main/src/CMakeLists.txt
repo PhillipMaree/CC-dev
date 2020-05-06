@@ -6,4 +6,7 @@ include_directories( inc )
 
 add_executable( main ${MAIN_SRC} )
 
-target_link_libraries( main solver )
+find_package( PythonLibs 3.6.9 )
+
+target_include_directories(main PRIVATE ${PYTHON_INCLUDE_DIRS})
+target_link_libraries(main solver ${PYTHON_LIBRARIES})

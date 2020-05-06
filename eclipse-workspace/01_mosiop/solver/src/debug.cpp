@@ -24,11 +24,6 @@
 		printf("\033[1;30mDEBUG:\033[0m %s\n", str.c_str());
 	}
 
-	void DEBUG( const boost::format& fmt )
-	{
-		printf("\033[1;30mDEBUG:\033[0m %s\n", boost::str(fmt ).c_str() );
-	}
-
 	void DEBUG( const casadi::SX &sx, const std::string& str )
 	{
 

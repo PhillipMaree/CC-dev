@@ -14,14 +14,16 @@
 class MpcC {
 public:
 
-	MpcC( float h, int N, int K=3) : nlp( h, N, K ){ };
+	MpcC( float h_, int N, int T_, int K=3) : h(h_), T(T_), nlp( h_, N, K ){ };
 	~MpcC( void){};
 
-	void solve(casadi::DMDict&, casadi::DMDict&);
+	void solve(casadi::DMDict&, bool plot_ol=false, bool plot_cl=false);
 
 protected:
 
 	NlpC nlp;
+	const int T;
+	const float h;
 
 };
 
