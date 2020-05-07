@@ -15,7 +15,7 @@ casadi::DMDict MpcC::solve(casadi::DMDict& arg, bool closed_loop )
 
 		std::map<std::string, casadi::DMVector> cl;
 
-		for( int k =0; k< ceil(T/h); k++) {
+		for( int k =0; k< ceil(tf/h); k++) {
 
 			casadi::DMDict nlp_res = nlp.solve( arg );
 

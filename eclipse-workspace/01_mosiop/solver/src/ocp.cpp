@@ -12,9 +12,9 @@
 /*
  * Application
  */
-CstrC::CstrC( float tf ): OcpC( tf, "Acetylene hydrogenation CSTR process" ) {
-	u = VmC("u", casadi::DM({1e-3}), casadi::DM({5.0}));
-	y = VmC("y", casadi::DM({1e-3,1e-3,1e-3}), casadi::DM({1.0,1.0,1.0}));
+CstrC::CstrC( float T ): OcpC( T, "Acetylene hydrogenation CSTR process" ) {
+	u = VmC("u", casadi::DM({1e-4}), casadi::DM({5.0}));
+	y = VmC("y", casadi::DM({1e-4,1e-4,1e-4}), casadi::DM({1.0,1.0,1.0}));
 }
 
 

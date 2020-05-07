@@ -12,14 +12,13 @@
 #include <string>
 #include <vector>
 
-#define DEBUG_ENABLED
-
-
+//#define DEBUG_ENABLED
 
 #ifdef DEBUG_ENABLED
 
 	void DEBUG( const int val, const std::string& str="Val" );
 	void DEBUG( const float val, const std::string& str="Val" );
+	void DEBUG( const double val, const std::string& str="Val" );
 	void DEBUG( const std::string& str  );
 	void DEBUG( const casadi::SX &sx, const std::string& str="" );
 	void DEBUG( const casadi::DM &dm, const std::string& str="" );
@@ -31,6 +30,7 @@
 
 	inline void DEBUG( const int val, const std::string& str="Val" ) {};
 	inline void DEBUG( const float val, const std::string& str="Val" ) {};
+	inline void DEBUG( const double val, const std::string& str="Val" ) {};
 	inline void DEBUG( const std::string& str  ){};
 	inline void DEBUG( const casadi::SX &sx, const std::string& str="" ){};
 	inline void DEBUG( const casadi::DM &sx, const std::string& str="" ){};

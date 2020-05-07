@@ -19,6 +19,11 @@
 		printf("\033[1;30mDEBUG:\033[0m %s = %10.3e\n", str.c_str() ,val);
 	}
 
+	void DEBUG( const double val, const std::string& str   )
+	{
+		printf("\033[1;30mDEBUG:\033[0m %s = %10.3e\n", str.c_str() ,val);
+	}
+
 	void DEBUG( const std::string& str  )
 	{
 		printf("\033[1;30mDEBUG:\033[0m %s\n", str.c_str());

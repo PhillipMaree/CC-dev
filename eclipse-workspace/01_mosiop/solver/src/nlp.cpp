@@ -12,11 +12,11 @@
 /*
  * Extern NLP solver interface
  */
-void* create_solver( double h, double N)
+void* create_solver( double h, double N )
 {
 	printf("\n\033[1;36mInstantiate NLP solver.\033[0m\n\n" );
 
-	NlpC* solver = new NlpC( (float)h, (int)N );
+	NlpC* solver = new NlpC( (float)h, (int)N , 3, "legendre" ,false);
 
 	return (void*)solver;
 }
@@ -34,10 +34,11 @@ double solve(void * vptr, double x1, double x2, double x3 )
 	NlpC* solver_ptr = (NlpC*)vptr;
 
 	casadi::DMDict arg = {{"x0",casadi::DM({x1,x2,x3})}};
-
 	casadi::DMDict res = solver_ptr->solve(arg);
 
-    return 0;
+	printf("For input [%.3lf,%.3lf,%.3lf] solve rhc [%.3lf]", x1,x2,x3, res["u0"](0).operator double());
+
+    return res["u0"](0).operator double();
 }
 
 /*
@@ -155,12 +156,13 @@ CasadiFnC::ProxySt CasadiFnC::operator[](std::string fn_name)
  * NLP formulation class functions
  */
 
-NlpC::NlpC( float h_, int N_, int K_, std::string scheme ) :
+NlpC::NlpC( float h_, int N_, int K_, std::string scheme, bool verbose_ ) :
 		ColC( K_, scheme.c_str() ), appOcp( h_*N_ ), casadiFn(&appOcp),
 		tf(h_*N_), h(h_), N(N_),
 		n(appOcp.y.size1()), m(appOcp.u.size1()),
 		y_offset(0), c_offset(1), u_offset(1+K_), stage_offset(2+K_),
-		nlp_u_var_n(N*m), nlp_y_var_n((N+1)*n), nlp_c_var_n(N*K*n), nlp_g_var_n(N*(1+K)*n), nlp_t_var_n(nlp_u_var_n+nlp_y_var_n+nlp_c_var_n)
+		nlp_u_var_n(N*m), nlp_y_var_n((N+1)*n), nlp_c_var_n(N*K*n), nlp_g_var_n(N*(1+K)*n), nlp_t_var_n(nlp_u_var_n+nlp_y_var_n+nlp_c_var_n),
+		verbose(verbose_)
 {
 
 	build_nlp_struct();
@@ -189,9 +191,6 @@ casadi::DMDict NlpC::solve(casadi::DMDict& arg)
 	res["t"] = dm_nlp["t"].concatenate().T();
 	res["u"] = DM(m,(1+K)*N + 1);
 	res["x"] = DM(n,(1+K)*N + 1);
-
-	//DEBUG(res["x"],"x");
-	//DEBUG(res["u"],"u");
 
 	// extraction
 	int offset;
@@ -295,7 +294,7 @@ void NlpC::transcribe_nlp( void )
 	for( int k=0; k<N; k++ ) {
 
 
-		// continuity boundary constraints
+		// continuity boundary constraints.807
 		MX y_k_end = D(0)*y(k);
 
 		for( int tau_j = 1; tau_j<K+1; tau_j++ )
@@ -335,8 +334,16 @@ void NlpC::transcribe_nlp( void )
 			            {"f", mx_nlp["J"].concatenate()},
 				        {"g", mx_nlp["g"].concatenate()}};
 
+	// ipopt related dictionary options
+	Dict opts_dict=Dict();
+	if ( !verbose ) {
+		opts_dict["ipopt.print_level"] = 0;
+		opts_dict["ipopt.sb"] = "yes";
+		opts_dict["print_time"] = 0;
+	}
+
 	// instantiate NLP sovler
-	solver = nlpsol("nlpsol", "ipopt", nlp, {{"verbose", false}} );
+	solver = nlpsol("nlpsol", "ipopt", nlp, opts_dict );
 
 	DMDict arg = {{"x0",dm_nlp["x0"].concatenate()},
 			{"lbx",dm_nlp["lbx"].concatenate()},

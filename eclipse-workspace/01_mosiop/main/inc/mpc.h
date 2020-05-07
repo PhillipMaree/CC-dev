@@ -14,7 +14,7 @@
 class MpcC {
 public:
 
-	MpcC( float h_, int N, int T_, int K=3) : h(h_), T(T_), nlp( h_, N, K ){ };
+	MpcC( float h_, int N, int tf_, int K=3) : h(h_), tf(tf_), nlp( h_, N, K ){ };
 	~MpcC( void){};
 
 	casadi::DMDict solve(casadi::DMDict&, bool closed_loop=true );
@@ -22,7 +22,7 @@ public:
 protected:
 
 	NlpC nlp;
-	const int T;
+	const int tf;
 	const float h;
 
 };

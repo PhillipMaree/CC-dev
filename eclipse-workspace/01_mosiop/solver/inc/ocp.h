@@ -44,7 +44,7 @@ class OcpC {
 
 public:
 
-	OcpC( float tf, std::string name_="empty" ) : name(name_) { t = VmC("t",casadi::DM(1), casadi::DM(tf)); }
+	OcpC( float T, std::string name_="empty" ) : name(name_) { t = VmC("t",casadi::DM(1), casadi::DM(T)); }
 	virtual ~OcpC( void ) {};
 
 	virtual casadi::MX l(void) = 0;                     // legendre cost term

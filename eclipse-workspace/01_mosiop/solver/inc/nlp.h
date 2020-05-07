@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-void* create_solver( double tf, double N );
+void* create_solver( double h, double N );
 void destroy_solver( void* vptr );
 double solve(void * vptr, double x1, double x2, double x3 );
 
@@ -117,7 +117,7 @@ public:
 class NlpC : public ColC {
 public:
 
-	NlpC( float , int, int K=3, std::string scheme="legendre");
+	NlpC( float , int, int K=3, std::string scheme="legendre", bool verbose=true);
 	~NlpC( void ){};
 
 	casadi::DMDict solve(casadi::DMDict&);
@@ -140,6 +140,7 @@ protected:
 	const float tf, h;
 	const int N, n, m;
 	const int y_offset, c_offset, u_offset, stage_offset, nlp_u_var_n, nlp_y_var_n, nlp_c_var_n, nlp_g_var_n, nlp_t_var_n;
+	const bool verbose;
 
 };
 
