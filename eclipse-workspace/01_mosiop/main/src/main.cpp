@@ -4,7 +4,7 @@
  *  Created on: Apr 24, 2020
  *      Author: johannes
  */
-
+#include "../inc/plot.h"
 #include "../inc/mpc.h"
 
 void TEST_EXTERN_NLP_OPENLOOP( void );
@@ -16,7 +16,8 @@ static const int T = 10;     // closed-loop simulation time
 
 int main( void )
 {
-	TEST_LOCAL_MPC_CLOSEDLOOP();
+	//TEST_LOCAL_MPC_CLOSEDLOOP();
+	TEST_EXTERN_NLP_OPENLOOP();
 
 	return 0;
 }
@@ -30,6 +31,11 @@ void TEST_EXTERN_NLP_OPENLOOP( void )
 
 	res = ((NlpC*)vptr)->solve(arg);
 
+	FigC fig;
+	fig.title("Open-loop CSTR OCP solution");
+	fig.plot( res["t"], res["x"], res["u"]);
+	fig.show();
+
 	destroy_solver( vptr );
 }
 
@@ -42,6 +48,7 @@ void TEST_LOCAL_MPC_CLOSEDLOOP( void )
 	res = mpc.solve( arg );
 
 	FigC fig;
+	fig.title("Closed-loop CSTR MPC solution");
 	fig.plot( res["t"], res["x"], res["u"]);
 	fig.show();
 
